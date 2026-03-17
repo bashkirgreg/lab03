@@ -255,22 +255,116 @@ $ mv -f tmp/CMakeLists.txt .
 $ rm -rf tmp
 ```
 
-
+Выводим содержимое файла `CMakeLists.txt` с помощью команды `cat CMakeLists.txt`:
 ```sh
-$ cat CMakeLists.txt
-$ cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
-$ cmake --build _build --target install
-$ tree _install
+cmake_minimum_required(VERSION 3.4)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(BUILD_EXAMPLES "Build examples" OFF)
+
+project(print)
+
+add_library(print STATIC ${CMAKE_CURRENT_SOURCE_DIR}/sources/print.cpp)
+
+target_include_directories(print PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+if(BUILD_EXAMPLES)
+  file(GLOB EXAMPLE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/examples/*.cpp")
+  foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
+    get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE} NAME_WE)
+    add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
+    target_link_libraries(${EXAMPLE_NAME} print)
+    install(TARGETS ${EXAMPLE_NAME}
+      RUNTIME DESTINATION bin
+    )
+  endforeach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
+endif()
+
+install(TARGETS print
+    EXPORT print-config
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
+install(EXPORT print-config DESTINATION cmake)
+```
+Затем настраиваем проект для сборки, сохраняя сгенерированные файлы в директорию `_build`, и устанавливаем путь установки в директорию `_install` через команду `cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install`:
+```
+CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/user1/bashkirgreg/workspace/projects/lab03/_build
+```
+Запускаем сборку проекта и его установку с помощью команды `cmake --build _build --target install`:
+```
+[100%] Built target print
+Install the project...
+-- Install configuration: ""
+-- Installing: /home/user1/bashkirgreg/workspace/projects/lab03/_install/lib/libprint.a
+-- Installing: /home/user1/bashkirgreg/workspace/projects/lab03/_install/include
+-- Installing: /home/user1/bashkirgreg/workspace/projects/lab03/_install/include/print.hpp
+-- Installing: /home/user1/bashkirgreg/workspace/projects/lab03/_install/cmake/print-config.cmake
+-- Installing: /home/user1/bashkirgreg/workspace/projects/lab03/_install/cmake/print-config-noconfig.cmake
+```
+И в конце, для удобства, выводим древовидную структуру файлов и папок с помощью команды `tree _install`:
+```
+install
+├── cmake
+│   ├── print-config.cmake
+│   └── print-config-noconfig.cmake
+├── include
+│   └── print.hpp
+└── lib
+    └── libprint.a
+
+4 directories, 4 files
 ```
 
+Начинаем отслеживать файл `CMakeLists.txt`, создаем коммит с изменениями и публикуем его на удаленном репозитории:
 ```sh
 $ git add CMakeLists.txt
 $ git commit -m"added CMakeLists.txt"
 $ git push origin master
 ```
+Вывод терминала после второй команды:
+```
+[master 5eb8029] added CMakeLists.txt
+ 1 file changed, 36 insertions(+)
+ create mode 100644 CMakeLists.txt
+```
+И после третьей команды:
+```
+Enumerating objects: 3008, done.
+Counting objects: 100% (3008/3008), done.
+Compressing objects: 100% (2304/2304), done.
+Writing objects: 100% (3008/3008), 13.55 MiB | 9.39 MiB/s, done.
+Total 3008 (delta 528), reused 3000 (delta 525), pack-reused 0
+remote: Resolving deltas: 100% (528/528), done.
+remote: 
+remote: Create a pull request for 'master' on GitHub by visiting:
+remote:      https://github.com/bashkirgreg/lab03/pull/new/master
+remote: 
+To https://github.com/bashkirgreg/lab03.git
+ * [new branch]      master -> master
+```
+
 
 ## Report
 
+Возвращаемся в начальную директорию, задаём номер лабораторной, клонируем материалы, создаём директорию отчёта, копируем инструкцию, редактируем отчёт и публикуем его на Gist:
 ```sh
 $ popd
 $ export LAB_NUMBER=03
@@ -281,6 +375,7 @@ $ cd reports/lab${LAB_NUMBER}
 $ edit REPORT.md
 $ gist REPORT.md
 ```
+
 
 ## Homework
 
@@ -307,14 +402,3 @@ $ gist REPORT.md
 * *solver*, приложение которое испольует статические библиотеки *formatter_ex* и *solver_lib*.
 
 **Удачной стажировки!**
-
-## Links
-- [Основы сборки проектов на С/C++ при помощи CMake](https://eax.me/cmake/)
-- [CMake Tutorial](http://neerc.ifmo.ru/wiki/index.php?title=CMake_Tutorial)
-- [C++ Tutorial - make & CMake](https://www.bogotobogo.com/cplusplus/make.php)
-- [Autotools](http://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html)
-- [CMake](https://cgold.readthedocs.io/en/latest/index.html)
-
-```
-Copyright (c) 2015-2021 The ISC Authors
-```
