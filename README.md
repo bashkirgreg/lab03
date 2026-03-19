@@ -651,7 +651,6 @@ hello, world!
 $ cat > CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.10)
 project(solver_lib)
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -670,7 +669,7 @@ $ cat > solver.cpp << 'EOF'
 #include "solver.h"
 
 #include <stdexcept>
-
+#include <math.h>
 void solve(float a, float b, float c, float& x1, float& x2)
 {
     float d = (b * b) - (4 * a * c);
@@ -680,8 +679,8 @@ void solve(float a, float b, float c, float& x1, float& x2)
         throw std::logic_error{"error: discriminant < 0"};
     }
 
-    x1 = (-b - d) / (2 * a);
-    x2 = (-b + d) / (2 * a);
+    x1 = (-b - std::sqrt(d)) / (2 * a);
+    x2 = (-b + std::sqrt(d)) / (2 * a);
 }
 EOF
 ```
@@ -744,18 +743,6 @@ EOF
 ```
 E)Аналогично создаём файлы сборки с помощью команды `$ cmake -H. -B_build`, а затем производим сборку проекта на основании этих файлов через команду `$ cmake --build _build`:
 ```
--- The C compiler identification is GNU 13.3.0
--- The CXX compiler identification is GNU 13.3.0
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: /usr/bin/cc - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
 CMake Deprecation Warning at /home/user1/bashkirgreg/workspace/projects/lab03/formatter_lib/CMakeLists.txt:1 (cmake_minimum_required):
   Compatibility with CMake < 3.5 will be removed from a future version of
   CMake.
@@ -772,8 +759,8 @@ CMake Deprecation Warning at /home/user1/bashkirgreg/workspace/projects/lab03/fo
   CMake that the project does not need compatibility with older versions.
 
 
--- Configuring done (0.5s)
--- Generating done (0.0s)
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
 -- Build files have been written to: /home/user1/bashkirgreg/workspace/projects/lab03/solver/_build
 ```
 ```
@@ -782,14 +769,13 @@ CMake Deprecation Warning at /home/user1/bashkirgreg/workspace/projects/lab03/fo
 [ 62%] Building CXX object solver_lib/CMakeFiles/solver_lib.dir/solver.cpp.o
 [ 75%] Linking CXX static library libsolver_lib.a
 [ 75%] Built target solver_lib
-[ 87%] Building CXX object CMakeFiles/solver.dir/equation.cpp.o
-[100%] Linking CXX executable solver
+[ 87%] Linking CXX executable solver
 [100%] Built target solver
 ```
-Ё)Наконец запускаем программу через команду `_build/solver`, подставляя произвольные значения (`1 3 2`):
+Ё)Наконец запускаем программу через команду `_build/solver`, подставляя произвольные значения (`1 5 4`):
 ```
 -------------------------
-x1 = -2.000000
+x1 = -4.000000
 -------------------------
 -------------------------
 x2 = -1.000000
