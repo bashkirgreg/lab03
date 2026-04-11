@@ -401,13 +401,15 @@ $ cd ~/bashkirgreg/workspace/projects/lab03/formatter_lib
 Б)Создаём и наполняем файлы `CMakeList.txt`, `formatter.h` и `formatter.cpp` через команду `cat`:
 ```
 $ cat > CMakeLists.txt << 'EOF'
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.10)
 project(formatter)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(formatter STATIC formatter.cpp)
+
+target_include_directories(formatter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 EOF
 ```
 ```
@@ -477,7 +479,7 @@ CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
 А)Переходим в следующую директорую с помощью команды `cd ~/bashkirgreg/workspace/projects/lab03/formatter_ex_lib`, а затем также заполняем её слегка другими файлами:
 ```
 $ cat > CMakeLists.txt << 'EOF'
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.10)
 project(formatter_ex)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -485,8 +487,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(formatter_ex STATIC formatter_ex.cpp)
 
-target_include_directories(formatter_ex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../formatter_lib)
-target_link_libraries(formatter_ex formatter)
+target_include_directories(formatter_ex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(formatter_ex PUBLIC formatter)
 EOF
 ```
 ```
@@ -561,26 +563,8 @@ project(hello_world)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../formatter_lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/../formatter_ex_lib
-)
-
-add_subdirectory(../formatter_lib formatter_lib)
-add_subdirectory(../formatter_ex_lib formatter_ex_lib)
-
 add_executable(hello_world hello_world.cpp)
-target_link_libraries(hello_world formatter_ex)
-EOF
-```
-```
-$ cat > formatter_ex.h << 'EOF'
-#pragma once
-
-#include <string>
-#include <iostream>
-
-std::ostream& formatter(std::ostream& out, const std::string& message);
+target_link_libraries(hello_world PRIVATE formatter_ex)
 EOF
 ```
 ```
@@ -651,10 +635,13 @@ hello, world!
 $ cat > CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.10)
 project(solver_lib)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(solver_lib STATIC solver.cpp)
+
+target_include_directories(solver_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 EOF
 ```
 ```
@@ -670,6 +657,7 @@ $ cat > solver.cpp << 'EOF'
 
 #include <stdexcept>
 #include <math.h>
+
 void solve(float a, float b, float c, float& x1, float& x2)
 {
     float d = (b * b) - (4 * a * c);
@@ -693,18 +681,10 @@ project(solver)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/solver_lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/../formatter_lib
-    ${CMAKE_CURRENT_SOURCE_DIR}/../formatter_ex_lib
-)
-
 add_subdirectory(solver_lib)
-add_subdirectory(../formatter_lib formatter_lib)
-add_subdirectory(../formatter_ex_lib formatter_ex_lib)
 
 add_executable(solver equation.cpp)
-target_link_libraries(solver solver_lib formatter formatter_ex)
+target_link_libraries(solver PRIVATE solver_lib formatter formatter_ex)
 EOF
 ```
 ```
